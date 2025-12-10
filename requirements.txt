@@ -1,0 +1,12 @@
+pandas
+geopandas
+scikit-learn
+playwright
+streamlit
+folium
+streamlit-folium
+fiona
+shapely
+numpy
+joblib
+pyarrow
