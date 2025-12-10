@@ -81,31 +81,95 @@ def preprocess_data(df: pd.DataFrame, hawker_gdf: gpd.GeoDataFrame, planning_are
 
     # 7. Planning Area
     if planning_area_gdf is not None:
+        # Drop existing planning_area if present to avoid duplicates after join
+        if 'planning_area' in gdf.columns:
+            gdf = gdf.drop(columns=['planning_area'])
+            
         # Ensure CRS matches
         if planning_area_gdf.crs != gdf.crs:
             planning_area_gdf = planning_area_gdf.to_crs(gdf.crs)
             
-        # Spatial Join
-        # 'inner' or 'left'. Left ensures we keep all restaurants even if they fall outside (e.g. sea)
+        # Step 1: Exact spatial join (point within polygon)
         gdf_joined = gpd.sjoin(gdf, planning_area_gdf[['name', 'geometry']], how='left', predicate='within')
         
-        # Rename 'name_right' (from planning area) to 'planning_area'
-        # Note: sjoin usually produces index_right and columns from right df.
-        # If 'name' is in both, it becomes name_left and name_right.
+        # Rename 'name_right' to 'planning_area'
         if 'name_right' in gdf_joined.columns:
             gdf_joined = gdf_joined.rename(columns={'name_right': 'planning_area'})
-            # Drop name_left and rename back to name if needed, or just keep name_left as name
-            if 'name_left' in gdf_joined.columns:
-                gdf_joined = gdf_joined.rename(columns={'name_left': 'name'})
-        elif 'name' in planning_area_gdf.columns and 'name' not in gdf.columns:
-             gdf_joined = gdf_joined.rename(columns={'name': 'planning_area'})
+        elif 'name' in planning_area_gdf.columns:
+             # If sjoin didn't prefix because name wasn't in left, but we want to be safe
+             # Actually sjoin usually adds _right if collision.
+             # If no collision, it keeps 'name'. But 'name' is in restaurants (restaurant name).
+             # So it should be 'name_right'.
+             pass
+             
+        # Handle cases where 'name' collision might have happened differently or not at all
+        # If 'planning_area' column doesn't exist yet, look for 'name_right' or try to find where the area name went.
+        # In the previous code, we had logic for this. Let's be robust.
+        # The planning_area_gdf has 'name'. The restaurant gdf has 'name'.
+        # So sjoin will produce 'name_left' and 'name_right'.
+        if 'planning_area' not in gdf_joined.columns:
+             if 'name_right' in gdf_joined.columns:
+                 gdf_joined = gdf_joined.rename(columns={'name_right': 'planning_area'})
         
-        # Fill NaNs
-        gdf_joined['planning_area'] = gdf_joined['planning_area'].fillna('Unknown')
-        
+        # Restore 'name' from 'name_left' if it got renamed
+        if 'name_left' in gdf_joined.columns:
+            gdf_joined = gdf_joined.rename(columns={'name_left': 'name'})
+            
         # Clean up sjoin artifacts
         cols_to_drop = ['index_right']
-        gdf = gdf_joined.drop(columns=[c for c in cols_to_drop if c in gdf_joined.columns])
+        gdf_joined = gdf_joined.drop(columns=[c for c in cols_to_drop if c in gdf_joined.columns])
+        
+        # Step 2: Handle Unknowns with Nearest Neighbor
+        # Identify rows where planning_area is NaN
+        unknown_mask = gdf_joined['planning_area'].isna()
+        
+        if unknown_mask.any():
+            print(f"Found {unknown_mask.sum()} locations outside exact planning areas. Attempting nearest match...")
+            
+            # Separate unknown rows
+            gdf_unknown = gdf_joined[unknown_mask].copy()
+            # Drop the NaN planning_area column to avoid conflict in next join
+            gdf_unknown = gdf_unknown.drop(columns=['planning_area'])
+            
+            # Project to meters for distance calculation (EPSG:3414)
+            # We need to project both for accurate distance
+            gdf_unknown_proj = gdf_unknown.to_crs("EPSG:3414")
+            planning_area_proj = planning_area_gdf.to_crs("EPSG:3414")
+            
+            # Nearest join with max distance (e.g., 2km to catch coastal spots, but exclude JB)
+            # 2000 meters buffer
+            gdf_nearest = gpd.sjoin_nearest(
+                gdf_unknown_proj, 
+                planning_area_proj[['name', 'geometry']], 
+                how='left', 
+                max_distance=2000, 
+                distance_col='dist_to_area'
+            )
+            
+            # Rename columns back
+            if 'name_right' in gdf_nearest.columns:
+                gdf_nearest = gdf_nearest.rename(columns={'name_right': 'planning_area'})
+            
+            # Filter out points that are too far (still NaN or > threshold)
+            # sjoin_nearest with max_distance leaves them out or includes them? 
+            # If how='left', it keeps them but columns are NaN if no match within distance.
+            
+            # Update the original joined dataframe
+            # We need to map the results back.
+            # Create a mapping dictionary: index -> planning_area
+            # Note: sjoin_nearest might return multiple matches if equidistant? 
+            # We take the first one per index.
+            gdf_nearest = gdf_nearest[~gdf_nearest.index.duplicated(keep='first')]
+            
+            # Update values in gdf_joined
+            # We only update where it was unknown
+            # Using combine_first or direct assignment
+            gdf_joined.loc[unknown_mask, 'planning_area'] = gdf_nearest['planning_area']
+            
+        # Fill remaining NaNs (too far away) with 'Outside Singapore'
+        gdf_joined['planning_area'] = gdf_joined['planning_area'].fillna('Outside Singapore')
+        
+        gdf = gdf_joined
     else:
         gdf['planning_area'] = 'Unknown'
 

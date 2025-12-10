@@ -23,8 +23,35 @@ def main():
     print("Loading data...")
     gdf = gpd.read_parquet(data_path)
     print(f"Loaded {len(gdf)} restaurants")
+
+    # Load Planning Areas & Hawker Centres for re-preprocessing
+    raw_data_dir = os.path.join(script_dir, '../../data/raw')
     
-    print("\nCategory distribution:")
+    planning_area_path = os.path.join(raw_data_dir, "planning-areas.geojson")
+    if os.path.exists(planning_area_path):
+        planning_area_gdf = gpd.read_file(planning_area_path)
+    else:
+        print("Warning: planning-areas.geojson not found")
+        planning_area_gdf = None
+        
+    hawker_path = os.path.join(raw_data_dir, "hawker-centres.geojson")
+    if not os.path.exists(hawker_path):
+         hawker_path = os.path.join(raw_data_dir, "hawker-centres.kml")
+    try:
+        hawker_gdf = gpd.read_file(hawker_path)
+    except:
+        hawker_gdf = gpd.GeoDataFrame() # Empty if fail
+
+    # Re-run preprocessing to fix planning areas
+    from src.model.preprocessing import preprocess_data
+    print("Re-running preprocessing to fix locations...")
+    # We pass the existing gdf. preprocess_data handles it.
+    # Note: preprocess_data expects a dataframe with lat/lon or geometry. gdf has geometry.
+    gdf = preprocess_data(gdf, hawker_gdf, planning_area_gdf)
+    
+    print(f"After preprocessing: {len(gdf)} restaurants")
+    print("Planning Area counts:")
+    print(gdf['planning_area'].value_counts().head())
     print(gdf['category'].value_counts())
     
     # Features for model (removed is_hawker and price_level_num)
