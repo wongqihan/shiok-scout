@@ -217,7 +217,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-@st.cache_data(ttl=1)  # Short TTL to pick up data changes
+@st.cache_data(ttl=300)  # Cache for 5 minutes
 def load_data():
     import re
     from shapely.geometry import Point
@@ -329,6 +329,7 @@ def main():
 
         # Sliders
         min_rating = st.slider("Min Rating", 0.0, 5.0, 3.5, 0.1)
+        min_reviews = st.slider("Min Reviews", 0, 100, 5, 5)
 
         st.markdown("<div style='margin: 12px 0; border-top: 1px solid #e0e0e0;'></div>", unsafe_allow_html=True)
         st.markdown("**Legend**")
@@ -365,6 +366,7 @@ def main():
         filtered_df = filtered_df[filtered_df['category'] == selected_cuisine]
         
     filtered_df = filtered_df[filtered_df['rating'] >= min_rating]
+    filtered_df = filtered_df[filtered_df['review_count'] >= min_reviews]
     
     if highlight_gems:
         # Only show truly undervalued (teal dots, residual >= 0.5)
