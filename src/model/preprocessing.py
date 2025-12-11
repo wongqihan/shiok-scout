@@ -136,13 +136,13 @@ def preprocess_data(df: pd.DataFrame, hawker_gdf: gpd.GeoDataFrame, planning_are
             gdf_unknown_proj = gdf_unknown.to_crs("EPSG:3414")
             planning_area_proj = planning_area_gdf.to_crs("EPSG:3414")
             
-            # Nearest join with max distance (e.g., 2km to catch coastal spots, but exclude JB)
-            # 2000 meters buffer
+            # Nearest join with max distance (e.g., 500m to catch coastal spots, but exclude JB)
+            # 500 meters buffer
             gdf_nearest = gpd.sjoin_nearest(
                 gdf_unknown_proj, 
                 planning_area_proj[['name', 'geometry']], 
                 how='left', 
-                max_distance=2000, 
+                max_distance=500, 
                 distance_col='dist_to_area'
             )
             
@@ -169,6 +169,15 @@ def preprocess_data(df: pd.DataFrame, hawker_gdf: gpd.GeoDataFrame, planning_are
         # Fill remaining NaNs (too far away) with 'Outside Singapore'
         gdf_joined['planning_area'] = gdf_joined['planning_area'].fillna('Outside Singapore')
         
+        # HARD CUTOFF for JB
+        # Any point with latitude > 1.455 is likely Johor Bahru, even if it matched 'Woodlands' via nearest neighbor
+        # (Woodlands Checkpoint is ~1.445)
+        if 'latitude' in gdf_joined.columns:
+            gdf_joined.loc[gdf_joined['latitude'] > 1.455, 'planning_area'] = 'Outside Singapore'
+        elif hasattr(gdf_joined.geometry, 'y'):
+             # If geometry is available (it should be)
+             gdf_joined.loc[gdf_joined.geometry.y > 1.455, 'planning_area'] = 'Outside Singapore'
+
         gdf = gdf_joined
     else:
         gdf['planning_area'] = 'Unknown'

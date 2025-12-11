@@ -390,6 +390,36 @@ def main():
         unsafe_allow_html=True
     )
 
+    # --- Sidebar List ---
+    with st.sidebar:
+        st.markdown("---")
+        st.subheader("Top Visible Gems")
+        
+        if not filtered_df.empty:
+            # Sort by residual descending
+            top_gems = filtered_df.sort_values('residual', ascending=False).head(20)
+            
+            # Prepare display dataframe
+            # Ensure url exists
+            if 'url' not in top_gems.columns:
+                top_gems['url'] = "https://www.google.com/maps/search/?api=1&query=" + top_gems['name'].str.replace(' ', '+')
+            
+            display_df = top_gems[['name', 'residual', 'url']].copy()
+            display_df['residual'] = display_df['residual'].apply(lambda x: f"+{x:.2f}" if x > 0 else f"{x:.2f}")
+            
+            st.dataframe(
+                display_df,
+                column_config={
+                    "name": "Restaurant",
+                    "residual": "Gap",
+                    "url": st.column_config.LinkColumn("Link", display_text="🔗")
+                },
+                hide_index=True,
+                use_container_width=True
+            )
+        else:
+            st.write("No gems found with current filters.")
+
     # --- Prepare Data for Deck.gl ---
     # We need a clean DF with lat/lon columns and a color column
     if not filtered_df.empty:
