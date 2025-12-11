@@ -311,7 +311,7 @@ def main():
         st.markdown("""
             <div style="margin-bottom: 12px; margin-top: 0;">
                 <h1 style="font-size: 2.3rem; font-weight: 800; color: #333; margin: 0 0 0.3rem 0; line-height: 1.2;">
-                    🍜 Shiok Scout
+                    🍜 Shiok Scout v1.1
                 </h1>
                 <p style="font-size: 1rem; color: #555; margin: 0; font-weight: 500;">
                     Algorithmic Restaurant Gems
