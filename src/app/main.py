@@ -537,6 +537,7 @@ def main():
         )
         
         # Tooltip with dynamic colors
+        tooltip = {
             "html": """
                 <div style="font-family: -apple-system, sans-serif; width: 280px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); overflow: hidden;">
                     <div style="background: {hcolor}; padding: 12px 16px;">
