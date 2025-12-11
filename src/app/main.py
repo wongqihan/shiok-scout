@@ -19,17 +19,7 @@ st.set_page_config(
 
 # Sidebar
 
-# Constants
-# DATA_PATH = "../../data/processed/restaurants_with_residuals.parquet" # Removed global DATA_PATH
-
-@st.cache_data
-def load_data():
-    # Load processed data (Force refresh v2)
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.join(script_dir, '../../data/processed/restaurants_with_residuals.parquet')
-    # Assuming the function will eventually load and return data, e.g.:
-    # df = pd.read_parquet(data_path)
-    # return df
+# Constants removed for security
 
 # Custom CSS for Floating Panel & Fullscreen Map
 st.markdown("""
