@@ -7,11 +7,22 @@ import os
 
 # Page Config
 st.set_page_config(
-    page_title="🍜 Shiok Scout",
+    page_title="Shiok Scout",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
+# Title and Description
+st.title("🍜 Shiok Scout")
+st.markdown("""
+**Finding Singapore's Overperforming Restaurants**
+
+Most food guides are popularity contests. This map is different. 
+It uses machine learning to find restaurants that **outperform expectations** for their location and cuisine.
+
+- **Teal Dots**: Overperforming (True Gems)
+- **Coral Dots**: Underperforming (Potentially Overhyped)
+""")
 # Constants
 DATA_PATH = "../../data/processed/restaurants_with_residuals.parquet"
 
