@@ -20,7 +20,16 @@ st.set_page_config(
 # Sidebar
 
 # Constants
-DATA_PATH = "../../data/processed/restaurants_with_residuals.parquet"
+# DATA_PATH = "../../data/processed/restaurants_with_residuals.parquet" # Removed global DATA_PATH
+
+@st.cache_data
+def load_data():
+    # Load processed data (Force refresh v2)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    data_path = os.path.join(script_dir, '../../data/processed/restaurants_with_residuals.parquet')
+    # Assuming the function will eventually load and return data, e.g.:
+    # df = pd.read_parquet(data_path)
+    # return df
 
 # Custom CSS for Floating Panel & Fullscreen Map
 st.markdown("""
@@ -234,7 +243,9 @@ def load_data():
     import re
     from shapely.geometry import Point
     
-    path = os.path.join(os.path.dirname(__file__), DATA_PATH)
+    # path = os.path.join(os.path.dirname(__file__), "../../data/processed/restaurants_with_residuals.parquet")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(script_dir, '../../data/processed/restaurants_with_residuals.parquet')
     if not os.path.exists(path):
         return pd.DataFrame()
     
