@@ -12,14 +12,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Title and Description
-st.title("🍜 Shiok Scout")
-st.markdown("""
-**Singapore's Hidden Gem Restaurant Finder**
+# Sidebar
 
-This map uses machine learning to find restaurants that are **undervalued** relative to their location and cuisine.
-It identifies spots that outperform expectations—true hidden gems that traditional rating lists often miss.
-""")
 # Constants
 DATA_PATH = "../../data/processed/restaurants_with_residuals.parquet"
 
@@ -299,7 +293,7 @@ def main():
                     🍜 Shiok Scout
                 </h1>
                 <p style="font-size: 1rem; color: #555; margin: 0; font-weight: 500;">
-                    Algorithmically Undervalued Spots
+                    Algorithmic Restaurant Gems
                 </p>
             </div>
         """, unsafe_allow_html=True)
