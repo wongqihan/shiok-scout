@@ -1,10 +1,8 @@
 pandas
 geopandas
 scikit-learn
-playwright
 streamlit
-folium
-streamlit-folium
+pydeck
 fiona
 shapely
 numpy
