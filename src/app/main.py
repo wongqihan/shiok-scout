@@ -340,7 +340,7 @@ def main():
             <div style="font-size: 14px; color: #333;">
                 <div style="display: flex; align-items: center; margin-bottom: 4px;">
                     <span style="display: inline-block; width: 10px; height: 10px; background-color: #2a9d8f; border-radius: 50%; margin-right: 8px;"></span>
-                    <span>Undervalued (Hidden Gem)</span>
+                    <span>Undervalued (Gem)</span>
                 </div>
                 <div style="display: flex; align-items: center; margin-bottom: 4px;">
                     <span style="display: inline-block; width: 10px; height: 10px; background-color: #e9c46a; border-radius: 50%; margin-right: 8px;"></span>
@@ -457,7 +457,7 @@ def main():
             factors_str = ", ".join(factors) if factors else "its profile"
             
             if residual >= 0.5:
-                return f"With {factors_str}, similar spots in {area} average {predicted:.1f}★. This place beats expectations at {actual:.1f}★ - a true hidden gem!"
+                return f"With {factors_str}, similar spots in {area} average {predicted:.1f}★. This place beats expectations at {actual:.1f}★ - a true gem!"
             elif residual > 0.1:
                 return f"Based on {factors_str}, we'd expect {predicted:.1f}★. Scoring {actual:.1f}★ means it's performing above average."
             elif residual > -0.1:
