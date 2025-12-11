@@ -24,19 +24,30 @@ The marginal cost of execution has collapsed. The bottleneck is no longer capita
 
 The model revealed that **location is king**. Planning area alone explains ~49% of rating variance. Cuisine type accounts for ~27%.
 
-The top "hidden gems"? Mostly in industrial areas like Sungei Kadut and Tuas. Places you'd never find on a "Top 10" list—but statistically, they're outperforming similar restaurants by 0.9+ stars.
+## The Problem: The "Best" List is Broken.
 
-🔥 **The Overhyped List**
+Every "Best Restaurants" list suffers from the same bias: **digital visibility**.
 
-On the flip side, I found restaurants that are *underperforming* their potential. Popular spots with hundreds of reviews—but ratings well below what you'd expect.
+High-rated spots in prime locations attract more visits. More visits = more reviews. More reviews = higher visibility. It's a flywheel that systematically overlooks great food in "ulu" locations.
 
-The most striking: **Thohirah Restaurant** in Sengkang. 4,249 reviews but rating 0.9★ below its predicted score. That's a lot of disappointed customers for a spot that should be doing better.
+I wanted to build something different: a system that strips away the location bias to find restaurants that are **statistically overperforming** their context.
 
-🍜 **The Product: Shiok Scout**
+**A few caveats for V1:**
+1. **No Hawkers:** I deliberately excluded hawker centers—they operate on a different scale and deserve their own model.
+2. **The "Free Dessert" Problem:** Reviews can be inflated by promos ("5 stars for free ice cream!") or bots. Detecting this requires analyzing review content, which is hard to do at scale without aggressive scraping. For now, treat high residuals as a signal to investigate, not a guarantee.
 
-An interactive map of Singapore. Color-coded dots show which restaurants are undervalued (teal), fairly valued (yellow), or overvalued (coral). Each tooltip explains *why*—based on the restaurant's cuisine, review count, and competitive density.
+**Easter Egg:** The scraper accidentally (but happily) captured parts of **Johor Bahru**—so you can find gems for your weekend trips too. 🚗💨
 
-The real unlock wasn't the tech. It was reframing the question from "what's the best rated?" to "what's surprisingly good given its circumstances?"
+## Top Findings
+
+1.  **Industrial Estates are Gold Mines.**
+    Forget Orchard. The highest "Value Above Replacement" scores are consistently found in **Sungei Kadut, Tuas, and Tengah**. These spots survive purely on food quality, with zero foot traffic to save them.
+
+2.  **The "Marina Bay Premium" is Real.**
+    Location explains nearly 50% of a rating. A mediocre Japanese restaurant in Marina Bay will statistically drift towards 4.2 stars, while a superior one in Jurong fights to hit 4.0. The model exposes this gap.
+
+3.  **Chains are the Control Group.**
+    Chain restaurants (McDonald's, Saizeriya, etc.) have near-zero residuals. They perform exactly as the model predicts—perfectly average, perfectly predictable. They are the baseline against which "Gems" are measured. the question from "what's the best rated?" to "what's surprisingly good given its circumstances?"
 
 ---
 

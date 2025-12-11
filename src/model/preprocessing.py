@@ -84,8 +84,28 @@ def preprocess_data(df: pd.DataFrame, hawker_gdf: gpd.GeoDataFrame, planning_are
         # Drop existing planning_area if present to avoid duplicates after join
         if 'planning_area' in gdf.columns:
             gdf = gdf.drop(columns=['planning_area'])
-            
-        # Ensure CRS matches
+
+        # --- Manual Coordinate Fixes ---
+        # Some restaurants have incorrect scraped coordinates (e.g. Luss in Changi instead of Queenstown)
+        
+        # Luss Restaurant & Bar (Portsdown Rd -> Queenstown)
+        mask_luss = gdf['name'].str.contains('Luss Restaurant', case=False, na=False)
+        if mask_luss.any():
+            gdf.loc[mask_luss, 'latitude'] = 1.2915
+            gdf.loc[mask_luss, 'longitude'] = 103.7925
+            # Update geometry
+            gdf.loc[mask_luss, 'geometry'] = gpd.points_from_xy(gdf.loc[mask_luss, 'longitude'], gdf.loc[mask_luss, 'latitude'])
+
+        # 9 Plus Bistro (Pasir Panjang -> Queenstown/Bukit Merah)
+        mask_9plus = gdf['name'].str.contains('9 Plus Bistro', case=False, na=False)
+        if mask_9plus.any():
+            gdf.loc[mask_9plus, 'latitude'] = 1.2830
+            gdf.loc[mask_9plus, 'longitude'] = 103.7810
+            gdf.loc[mask_9plus, 'geometry'] = gpd.points_from_xy(gdf.loc[mask_9plus, 'longitude'], gdf.loc[mask_9plus, 'latitude'])
+
+        # --- Spatial Join ---
+        # Ensure CRS matches (EPSG:4326 for lat/lon, but we project for distance)
+        # Planning areas are usually in 3414 or 4326. Let's check.
         if planning_area_gdf.crs != gdf.crs:
             planning_area_gdf = planning_area_gdf.to_crs(gdf.crs)
             
@@ -131,52 +151,71 @@ def preprocess_data(df: pd.DataFrame, hawker_gdf: gpd.GeoDataFrame, planning_are
             # Drop the NaN planning_area column to avoid conflict in next join
             gdf_unknown = gdf_unknown.drop(columns=['planning_area'])
             
-            # Project to meters for distance calculation (EPSG:3414)
-            # We need to project both for accurate distance
-            gdf_unknown_proj = gdf_unknown.to_crs("EPSG:3414")
+            # Split unknowns into Mainland (Lat <= 1.44) and Border (Lat > 1.44)
+            # Mainland can have a large buffer (2km) to catch points in gaps/roads.
+            # Border needs a tight buffer (100m) to exclude JB.
+            
+            # Ensure we have latitude. If not, extract from geometry.
+            if 'latitude' not in gdf_unknown.columns:
+                gdf_unknown['latitude'] = gdf_unknown.geometry.y
+                
+            mask_border = gdf_unknown['latitude'] > 1.44
+            gdf_border = gdf_unknown[mask_border].copy()
+            gdf_mainland = gdf_unknown[~mask_border].copy()
+            
+            # Project
+            gdf_border_proj = gdf_border.to_crs("EPSG:3414")
+            gdf_mainland_proj = gdf_mainland.to_crs("EPSG:3414")
             planning_area_proj = planning_area_gdf.to_crs("EPSG:3414")
             
-            # Nearest join with max distance (e.g., 500m to catch coastal spots, but exclude JB)
-            # 500 meters buffer
-            gdf_nearest = gpd.sjoin_nearest(
-                gdf_unknown_proj, 
-                planning_area_proj[['name', 'geometry']], 
-                how='left', 
-                max_distance=500, 
-                distance_col='dist_to_area'
-            )
-            
-            # Rename columns back
-            if 'name_right' in gdf_nearest.columns:
-                gdf_nearest = gdf_nearest.rename(columns={'name_right': 'planning_area'})
-            
-            # Filter out points that are too far (still NaN or > threshold)
-            # sjoin_nearest with max_distance leaves them out or includes them? 
-            # If how='left', it keeps them but columns are NaN if no match within distance.
-            
-            # Update the original joined dataframe
-            # We need to map the results back.
-            # Create a mapping dictionary: index -> planning_area
-            # Note: sjoin_nearest might return multiple matches if equidistant? 
-            # We take the first one per index.
-            gdf_nearest = gdf_nearest[~gdf_nearest.index.duplicated(keep='first')]
-            
-            # Update values in gdf_joined
-            # We only update where it was unknown
-            # Using combine_first or direct assignment
-            gdf_joined.loc[unknown_mask, 'planning_area'] = gdf_nearest['planning_area']
+            # Pass 1: Border (Strict 100m)
+            if not gdf_border.empty:
+                print(f"Matching {len(gdf_border)} border points with 100m buffer...")
+                gdf_nearest_border = gpd.sjoin_nearest(
+                    gdf_border_proj, 
+                    planning_area_proj[['name', 'geometry']], 
+                    how='left', 
+                    max_distance=100, 
+                    distance_col='dist_to_area'
+                )
+                # Deduplicate
+                gdf_nearest_border = gdf_nearest_border[~gdf_nearest_border.index.duplicated(keep='first')]
+                
+                # Update original
+                # We need to handle the column renaming if sjoin_nearest added suffix
+                col_name = 'name_right' if 'name_right' in gdf_nearest_border.columns else 'planning_area'
+                if col_name in gdf_nearest_border.columns:
+                     gdf_joined.loc[gdf_nearest_border.index, 'planning_area'] = gdf_nearest_border[col_name]
+
+            # Pass 2: Mainland (Generous 2000m)
+            if not gdf_mainland.empty:
+                print(f"Matching {len(gdf_mainland)} mainland points with 2000m buffer...")
+                gdf_nearest_mainland = gpd.sjoin_nearest(
+                    gdf_mainland_proj, 
+                    planning_area_proj[['name', 'geometry']], 
+                    how='left', 
+                    max_distance=2000, 
+                    distance_col='dist_to_area'
+                )
+                # Deduplicate
+                gdf_nearest_mainland = gdf_nearest_mainland[~gdf_nearest_mainland.index.duplicated(keep='first')]
+                
+                # Update original
+                col_name = 'name_right' if 'name_right' in gdf_nearest_mainland.columns else 'planning_area'
+                if col_name in gdf_nearest_mainland.columns:
+                     gdf_joined.loc[gdf_nearest_mainland.index, 'planning_area'] = gdf_nearest_mainland[col_name]
             
         # Fill remaining NaNs (too far away) with 'Outside Singapore'
         gdf_joined['planning_area'] = gdf_joined['planning_area'].fillna('Outside Singapore')
         
         # HARD CUTOFF for JB
-        # Any point with latitude > 1.455 is likely Johor Bahru, even if it matched 'Woodlands' via nearest neighbor
-        # (Woodlands Checkpoint is ~1.445)
+        # Any point with latitude > 1.46 is likely Johor Bahru (Woodlands max is ~1.462 but mostly < 1.46)
+        # Actually, let's just rely on the 100m buffer.
+        # But keep a safety net for deep JB.
         if 'latitude' in gdf_joined.columns:
-            gdf_joined.loc[gdf_joined['latitude'] > 1.455, 'planning_area'] = 'Outside Singapore'
+            gdf_joined.loc[gdf_joined['latitude'] > 1.47, 'planning_area'] = 'Outside Singapore'
         elif hasattr(gdf_joined.geometry, 'y'):
-             # If geometry is available (it should be)
-             gdf_joined.loc[gdf_joined.geometry.y > 1.455, 'planning_area'] = 'Outside Singapore'
+             gdf_joined.loc[gdf_joined.geometry.y > 1.47, 'planning_area'] = 'Outside Singapore'
 
         gdf = gdf_joined
     else:
