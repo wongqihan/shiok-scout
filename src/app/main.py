@@ -340,7 +340,7 @@ def main():
             <div style="font-size: 14px; color: #333;">
                 <div style="display: flex; align-items: center; margin-bottom: 4px;">
                     <span style="display: inline-block; width: 10px; height: 10px; background-color: #2a9d8f; border-radius: 50%; margin-right: 8px;"></span>
-                    <span>Undervalued (Gem)</span>
+                    <span>Gem</span>
                 </div>
                 <div style="display: flex; align-items: center; margin-bottom: 4px;">
                     <span style="display: inline-block; width: 10px; height: 10px; background-color: #e9c46a; border-radius: 50%; margin-right: 8px;"></span>
