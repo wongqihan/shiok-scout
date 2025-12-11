@@ -34,10 +34,12 @@ st.markdown("""
         overflow: hidden !important;
     }
     
-    /* 2. Hide Header & Footer */
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
-    [data-testid="stHeader"] {display: none;}
+    /* 2. Hide Header & Footer (DESKTOP ONLY) */
+    @media (min-width: 768px) {
+        header {visibility: hidden;}
+        footer {visibility: hidden;}
+        [data-testid="stHeader"] {display: none;}
+    }
     
     /* 3. Make Sidebar Transparent and Overlay Map (DESKTOP ONLY) */
     @media (min-width: 768px) {
@@ -535,9 +537,8 @@ def main():
         )
         
         # Tooltip with dynamic colors
-        tooltip = {
             "html": """
-                <div style="font-family: -apple-system, sans-serif; width: 320px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); overflow: hidden;">
+                <div style="font-family: -apple-system, sans-serif; width: 280px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); overflow: hidden;">
                     <div style="background: {hcolor}; padding: 12px 16px;">
                         <div style="color: white; font-size: 16px; font-weight: 600;">{name}</div>
                     </div>
@@ -561,7 +562,7 @@ def main():
                     </div>
                 </div>
             """,
-            "style": {"backgroundColor": "transparent", "padding": "0"}
+            "style": {"backgroundColor": "transparent", "padding": "0", "zIndex": "10000"}
         }
         
         # Render Deck
