@@ -103,6 +103,27 @@ def preprocess_data(df: pd.DataFrame, hawker_gdf: gpd.GeoDataFrame, planning_are
             gdf.loc[mask_9plus, 'longitude'] = 103.7810
             gdf.loc[mask_9plus, 'geometry'] = gpd.points_from_xy(gdf.loc[mask_9plus, 'longitude'], gdf.loc[mask_9plus, 'latitude'])
 
+        # Wu You Eating Place (Tuas -> Lavender/Kallang)
+        mask_wuyou = gdf['name'].str.contains('Wu You Eating Place', case=False, na=False)
+        if mask_wuyou.any():
+            gdf.loc[mask_wuyou, 'latitude'] = 1.3130
+            gdf.loc[mask_wuyou, 'longitude'] = 103.8610
+            gdf.loc[mask_wuyou, 'geometry'] = gpd.points_from_xy(gdf.loc[mask_wuyou, 'longitude'], gdf.loc[mask_wuyou, 'latitude'])
+
+        # Oasis Hideout (Lim Chu Kang -> Dover/Queenstown)
+        mask_oasis = gdf['name'].str.contains('Oasis Hideout', case=False, na=False)
+        if mask_oasis.any():
+            gdf.loc[mask_oasis, 'latitude'] = 1.3050
+            gdf.loc[mask_oasis, 'longitude'] = 103.7800
+            gdf.loc[mask_oasis, 'geometry'] = gpd.points_from_xy(gdf.loc[mask_oasis, 'longitude'], gdf.loc[mask_oasis, 'latitude'])
+
+        # L Bistro (Western Islands -> Jurong East)
+        mask_lbistro = gdf['name'].str.contains('L Bistro', case=False, na=False)
+        if mask_lbistro.any():
+            gdf.loc[mask_lbistro, 'latitude'] = 1.3330
+            gdf.loc[mask_lbistro, 'longitude'] = 103.7430
+            gdf.loc[mask_lbistro, 'geometry'] = gpd.points_from_xy(gdf.loc[mask_lbistro, 'longitude'], gdf.loc[mask_lbistro, 'latitude'])
+
         # --- Spatial Join ---
         # Ensure CRS matches (EPSG:4326 for lat/lon, but we project for distance)
         # Planning areas are usually in 3414 or 4326. Let's check.
