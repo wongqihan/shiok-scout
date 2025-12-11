@@ -13,7 +13,7 @@ An interactive map that uses machine learning to find restaurants that outperfor
 
 ## How It Works
 
-1. **Data Collection**: Scraped 70,000+ restaurant entries from Google Maps
+1. **Data Collection**: Compiled 70,000+ restaurant entries from Google Maps
 2. **Cuisine Classification**: Used Gemini API to classify restaurants by cuisine type
 3. **ML Model**: HistGradientBoostingRegressor predicts expected rating based on features
 4. **Residual Calculation**: `residual = actual_rating - predicted_rating`
