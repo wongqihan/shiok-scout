@@ -9,7 +9,12 @@ import os
 st.set_page_config(
     page_title="🍜 Shiok Scout",
     layout="wide",
-    initial_sidebar_state="auto"
+    initial_sidebar_state="auto",
+    menu_items={
+        'Get Help': None,
+        'Report a bug': None,
+        'About': None
+    }
 )
 
 # Sidebar
@@ -34,10 +39,11 @@ st.markdown("""
         overflow: hidden !important;
     }
     
-    /* 2. Hide Header & Footer (DESKTOP ONLY) */
+    /* 2. Hide Header (DESKTOP ONLY) & Footer (GLOBAL) */
+    footer {visibility: hidden;}
+    
     @media (min-width: 768px) {
         header {visibility: hidden;}
-        footer {visibility: hidden;}
         [data-testid="stHeader"] {display: none;}
     }
     
@@ -530,7 +536,7 @@ def main():
             opacity=0.8,
             stroked=True,
             filled=True,
-            radius_min_pixels=3,
+            radius_min_pixels=5,
             radius_max_pixels=10,
             line_width_min_pixels=1,
             get_line_color=[255, 255, 255, 100],
