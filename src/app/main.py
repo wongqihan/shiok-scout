@@ -9,7 +9,7 @@ import os
 st.set_page_config(
     page_title="🍜 Shiok Scout",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="auto"
 )
 
 # Sidebar
@@ -39,37 +39,39 @@ st.markdown("""
     footer {visibility: hidden;}
     [data-testid="stHeader"] {display: none;}
     
-    /* 3. Make Sidebar Transparent and Overlay Map */
-    section[data-testid="stSidebar"] {
-        position: absolute !important;
-        top: 0;
-        left: 0;
-        width: 100% !important;
-        height: 100vh !important;
-        background-color: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        z-index: 1000 !important;
-        pointer-events: none;
-        padding-top: 0 !important;
-    }
-    
-    /* 4. Style the Inner Content of the Sidebar as the Floating Card */
-    section[data-testid="stSidebar"] > div {
-        width: 350px !important;
-        background-color: white !important;
-        margin-top: 10px;
-        margin-left: 20px;
-        margin-bottom: 0;
-        padding: 18px;
-        padding-top: 12px;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        pointer-events: auto;
-        height: auto !important;
-        max-height: 92vh;
-        overflow-y: auto;
-        border: 1px solid #e0e0e0;
+    /* 3. Make Sidebar Transparent and Overlay Map (DESKTOP ONLY) */
+    @media (min-width: 768px) {
+        section[data-testid="stSidebar"] {
+            position: absolute !important;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100vh !important;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            z-index: 1000 !important;
+            pointer-events: none;
+            padding-top: 0 !important;
+        }
+        
+        /* 4. Style the Inner Content of the Sidebar as the Floating Card */
+        section[data-testid="stSidebar"] > div {
+            width: 350px !important;
+            background-color: white !important;
+            margin-top: 10px;
+            margin-left: 20px;
+            margin-bottom: 0;
+            padding: 18px;
+            padding-top: 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            pointer-events: auto;
+            height: auto !important;
+            max-height: 92vh;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+        }
     }
     
     /* 5. Force Main Content to Full Width/Height (Behind Sidebar) */
