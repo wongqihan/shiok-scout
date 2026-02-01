@@ -8,3 +8,4 @@ shapely
 numpy
 joblib
 pyarrow
+altair<5
